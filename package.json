@@ -1,0 +1,13 @@
+{
+  "name": "movie-website",
+  "version": "1.0.0",
+  "description": "A movie website with admin panel",
+  "main": "simple-server.js",
+  "scripts": {
+    "start": "node simple-server.js",
+    "dev": "node simple-server.js"
+  },
+  "keywords": ["movie", "website", "vercel"],
+  "author": "",
+  "license": "MIT"
+}

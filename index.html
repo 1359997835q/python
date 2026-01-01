@@ -1,0 +1,903 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>电影网站</title>
+    <!-- 引入Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* 全局样式重置 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* 字体和基础样式 */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #ffffff;
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        /* 头部样式 */
+        header {
+            background: linear-gradient(135deg, #e63946 0%, #1d3557 100%);
+            padding: 1.5rem 0;
+            text-align: center;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin: 0;
+            background: linear-gradient(45deg, #ffffff, #a8dadc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        /* 容器样式 */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* 电影网格样式 */
+        .movie-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 2.5rem;
+            margin-top: 2rem;
+        }
+
+        /* 电影卡片样式 */
+        .movie-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+            display: flex;
+            flex-direction: row;
+            height: 200px;
+        }
+
+        /* 卡片悬停效果 */
+        .movie-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.4);
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        /* 卡片悬停时的渐变光效 */
+        .movie-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            transition: left 0.5s;
+        }
+
+        .movie-card:hover::before {
+            left: 100%;
+        }
+
+        /* 电影海报样式 */
+        .movie-poster {
+            width: 60%;
+            height: 100%;
+            object-fit: contain;
+            transition: transform 0.4s ease;
+            border-right: 3px solid #e63946;
+            background-color: rgba(0, 0, 0, 0.3);
+            padding: 10px;
+        }
+
+        .movie-card:hover .movie-poster {
+            transform: scale(1.03);
+        }
+
+        /* 电影标题样式 */
+        .movie-title {
+            padding: 1rem;
+            text-align: center;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #f1faee;
+            background: rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-grow: 1;
+            border-top: none;
+        }
+
+        .movie-card:hover .movie-title {
+            color: #e63946;
+            background: rgba(0, 0, 0, 0.3);
+            transform: scale(1.02);
+        }
+
+        /* 视频播放页样式 */
+        .video-container {
+            max-width: 1000px;
+            margin: 2rem auto;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 2rem;
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* 电影信息样式 */
+        .movie-info {
+            margin-bottom: 1.5rem;
+        }
+
+        .movie-info h2 {
+            font-size: 2rem;
+            color: #f1faee;
+            margin-bottom: 0.5rem;
+            text-align: center;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        /* 视频播放器样式 */
+        #movie-player {
+            width: 100%;
+            height: 550px;
+            margin-bottom: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+            transition: all 0.3s ease;
+        }
+
+        #movie-player:hover {
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        /* 试看时间样式 */
+        .trial-info {
+            text-align: center;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #a8dadc;
+            margin-top: 1rem;
+            background: rgba(229, 57, 53, 0.2);
+            padding: 1rem;
+            border-radius: 8px;
+            border: 1px solid rgba(229, 57, 53, 0.3);
+        }
+
+        /* 弹窗样式 */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(5px);
+            animation: fadeIn 0.3s ease;
+        }
+
+        /* 弹窗内容样式 */
+        .modal-content {
+            background: linear-gradient(135deg, rgba(29, 53, 87, 0.95) 0%, rgba(229, 57, 53, 0.95) 100%);
+            margin: 8% auto;
+            padding: 2.5rem;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 550px;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            animation: slideIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* 弹窗装饰元素 */
+        .modal-content::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+            animation: rotate 10s linear infinite;
+        }
+
+        /* 关闭按钮样式 */
+        .close {
+            color: rgba(255, 255, 255, 0.8);
+            float: right;
+            font-size: 32px;
+            font-weight: bold;
+            cursor: pointer;
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            z-index: 100;
+            transition: all 0.3s ease;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .close:hover {
+            color: #ffffff;
+            transform: rotate(90deg) scale(1.2);
+        }
+
+        /* 弹窗标题样式 */
+        .modal-content h2 {
+            color: #ffffff;
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            position: relative;
+            z-index: 10;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        /* 弹窗文本样式 */
+        .modal-content p {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 1.1rem;
+            margin-bottom: 1.5rem;
+            position: relative;
+            z-index: 10;
+        }
+
+        /* 卡密表单样式 */
+        #card-form {
+            margin-top: 1.5rem;
+            position: relative;
+            z-index: 10;
+        }
+
+        /* 输入框样式 */
+        #card-input {
+            padding: 1rem;
+            width: 75%;
+            margin-right: 0.8rem;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            color: #ffffff;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        #card-input:focus {
+            outline: none;
+            border-color: #e63946;
+            background: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 0 0 3px rgba(230, 57, 70, 0.2);
+        }
+
+        #card-input::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        /* 提交按钮样式 */
+        #card-submit {
+            padding: 1rem 2rem;
+            background: linear-gradient(45deg, #e63946, #457b9d);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(230, 57, 70, 0.4);
+        }
+
+        #card-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(230, 57, 70, 0.6);
+            background: linear-gradient(45deg, #d62828, #3a5a7a);
+        }
+
+        /* 消息样式 */
+        #card-message {
+            margin-top: 1.2rem;
+            font-size: 1rem;
+            font-weight: 600;
+            position: relative;
+            z-index: 10;
+        }
+
+        /* 返回按钮样式 */
+        .back-btn {
+            display: inline-block;
+            margin-top: 1.5rem;
+            padding: 0.8rem 1.5rem;
+            background: rgba(255, 255, 255, 0.1);
+            color: #f1faee;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .back-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        /* 动画效果 */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-50px) scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        @keyframes rotate {
+            from {
+                transform: rotate(0deg);
+            }
+            to {
+                transform: rotate(360deg);
+            }
+        }
+        
+        @keyframes fadeOut {
+            from {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1);
+            }
+            to {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(0.95);
+            }
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 1200px) {
+            .container {
+                padding: 1.5rem;
+            }
+
+            .movie-grid {
+                grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+                gap: 2rem;
+            }
+
+            #movie-player {
+                height: 500px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            header h1 {
+                font-size: 2rem;
+            }
+
+            .movie-grid {
+                grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+                gap: 1.5rem;
+            }
+
+            .movie-card {
+                height: 180px;
+            }
+
+            .movie-title {
+                font-size: 1.1rem;
+                padding: 1rem;
+            }
+
+            .video-container {
+                padding: 1.5rem;
+            }
+
+            .movie-info h2 {
+                font-size: 1.5rem;
+            }
+
+            #movie-player {
+                height: 400px;
+            }
+
+            .modal-content {
+                padding: 2rem;
+                margin: 15% auto;
+            }
+
+            .modal-content h2 {
+                font-size: 1.5rem;
+            }
+
+            #card-input {
+                width: 100%;
+                margin-right: 0;
+                margin-bottom: 1rem;
+            }
+
+            #card-submit {
+                width: 100%;
+            }
+        }
+
+        @media (max-width: 480px) {
+            header h1 {
+                font-size: 1.8rem;
+            }
+
+            .movie-grid {
+                grid-template-columns: 1fr;
+                gap: 1.2rem;
+            }
+
+            .movie-card {
+                height: 160px;
+            }
+
+            .movie-poster {
+                width: 35%;
+            }
+
+            .movie-title {
+                font-size: 1rem;
+            }
+
+            .video-container {
+                padding: 1rem;
+            }
+
+            #movie-player {
+                height: 280px;
+            }
+
+            .modal-content {
+                padding: 1.5rem;
+                margin: 20% auto;
+            }
+
+            .close {
+                font-size: 28px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div style="max-width: 1400px; margin: 0 auto; padding: 0 2rem; display: flex; justify-content: space-between; align-items: center;">
+            <h1>电影网站</h1>
+            <a href="#" class="back-btn" id="back-btn" style="display: none;">返回首页</a>
+        </div>
+    </header>
+
+    <div class="container" id="home-container">
+        <div class="movie-grid">
+            <!-- 电影卡片将通过JavaScript动态生成 -->
+        </div>
+    </div>
+
+    <!-- 电影播放页面 -->
+    <div class="container" id="player-container" style="display: none;">
+        <div class="video-container">
+            <div class="movie-info">
+                <h2 id="movie-title"></h2>
+            </div>
+            <div style="display: flex; justify-content: flex-end; margin-bottom: 1rem;">
+                <button id="activate-card-btn" class="back-btn" style="background: linear-gradient(45deg, #e63946, #457b9d); border: none; padding: 0.8rem 1.5rem; cursor: pointer;">输入卡密解锁</button>
+            </div>
+            <video id="movie-player" controls autoplay>
+                <source src="" type="video/mp4">
+                您的浏览器不支持HTML5视频播放。
+            </video>
+        </div>
+    </div>
+
+    <!-- 卡密验证弹窗 -->
+    <div id="card-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>解锁完整观看</h2>
+            <p>输入卡密解锁完整影片观看权限</p>
+            <form id="card-form">
+                <input type="text" id="card-input" placeholder="请输入卡密" required>
+                <button type="submit" id="card-submit">验证</button>
+            </form>
+            <div id="url-section" style="margin-top: 1.5rem; display: none;">
+                <div style="display: flex; gap: 10px; margin-bottom: 1rem;">
+                    <input type="text" id="url-input" placeholder="请输入完整网址" style="flex: 1; padding: 0.8rem; border: 2px solid rgba(255, 255, 255, 0.2); border-radius: 10px; background: rgba(255, 255, 255, 0.1); color: #ffffff; font-size: 1rem;">
+                    <button type="button" id="copy-url-btn" style="padding: 0.8rem 1.5rem; background: linear-gradient(45deg, #e63946, #457b9d); color: white; border: none; border-radius: 10px; cursor: pointer;">
+                        复制
+                    </button>
+                </div>
+                <div style="font-size: 0.9rem; color: #a8dadc; text-align: center; background: rgba(229, 57, 53, 0.2); padding: 1rem; border-radius: 8px; border: 1px solid rgba(229, 57, 53, 0.3);">
+                    浏览器访问后可以下载到本地，禁止传播
+                </div>
+            </div>
+            <p id="card-message" style="margin-top: 1rem;"></p>
+        </div>
+    </div>
+    
+    <!-- 复制成功提示弹窗 -->
+    <div id="copy-success-toast" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0, 0, 0, 0.8); color: white; padding: 20px 40px; border-radius: 10px; font-size: 18px; z-index: 9999; display: none; text-align: center; opacity: 0; transition: opacity 0.3s ease;">
+        <i class="fa fa-check-circle" style="font-size: 36px; margin-bottom: 10px; color: #28a745;"></i>
+        <div>复制成功</div>
+    </div>
+
+    <script>
+        // 电影数据 - 将通过API动态获取
+        let movies = [];
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+
+        // 当前播放的电影
+        let currentMovie = null;
+        // 有效的卡密列表
+        let validCards = [];
+
+        // DOM元素
+        const homeContainer = document.getElementById('home-container');
+        const playerContainer = document.getElementById('player-container');
+        const movieGrid = document.querySelector('.movie-grid');
+        const moviePlayer = document.getElementById('movie-player');
+        const movieTitle = document.getElementById('movie-title');
+        const cardModal = document.getElementById('card-modal');
+        const cardForm = document.getElementById('card-form');
+        const cardInput = document.getElementById('card-input');
+        const cardMessage = document.getElementById('card-message');
+        const closeModal = document.querySelector('.close');
+        const backBtn = document.getElementById('back-btn');
+        const activateCardBtn = document.getElementById('activate-card-btn');
+
+        // 从JSON文件加载卡密
+        async function loadValidCards() {
+            try {
+                const response = await fetch('cards.json');
+                const data = await response.json();
+                validCards = data.validCards;
+            } catch (error) {
+                console.error('Failed to load valid cards:', error);
+                // 如果加载失败，使用默认卡密作为 fallback
+                validCards = ["CARD123", "MOVIE456", "WATCH789"];
+            }
+        }
+
+        // 从API获取电影数据
+        async function fetchMovies() {
+            try {
+                const response = await fetch('/api/movies');
+                if (!response.ok) {
+                    throw new Error('Failed to fetch movies');
+                }
+                movies = await response.json();
+                return true;
+            } catch (error) {
+                console.error('Failed to fetch movies:', error);
+                // 如果API请求失败，使用默认电影数据
+                movies = [
+                    {
+                        "id": 1,
+                        "title": "731部队",
+                        "poster": "731 部队.avif",
+                        "video": "https://sample-videos.com/video123/mp4/720/big_buck_bunny_720p_1mb.mp4"
+                    },
+                    {
+                        "id": 2,
+                        "title": "疯狂动物城2",
+                        "poster": "疯狂动物城2.avif",
+                        "video": "https://sample-videos.com/video123/mp4/720/big_buck_bunny_720p_1mb.mp4"
+                    },
+                    {
+                        "id": 3,
+                        "title": "哪吒2",
+                        "poster": "哪吒2.avif",
+                        "video": "https://sample-videos.com/video123/mp4/720/big_buck_bunny_720p_1mb.mp4"
+                    },
+                    {
+                        "id": 4,
+                        "title": "东极岛",
+                        "poster": "东极岛.avif",
+                        "video": "https://sample-videos.com/video123/mp4/720/big_buck_bunny_720p_1mb.mp4"
+                    }
+                ];
+                return false;
+            }
+        }
+
+        // 初始化电影列表
+        function initMovieList() {
+            // 清空现有电影卡片
+            movieGrid.innerHTML = '';
+            
+            if (movies.length === 0) {
+                // 没有电影时显示提示信息
+                movieGrid.innerHTML = `
+                    <div style="grid-column: 1 / -1; text-align: center; padding: 3rem; font-size: 1.8rem; color: #f1faee; font-weight: 600;">
+                        哦哦！资源去哪了？
+                    </div>
+                `;
+            } else {
+                movies.forEach(movie => {
+                    // 确保图片路径正确
+                    let posterUrl = movie.poster;
+                    if (!posterUrl.startsWith('http') && !posterUrl.startsWith('/')) {
+                        posterUrl = '/' + posterUrl;
+                    }
+                    
+                    const card = document.createElement('div');
+                    card.className = 'movie-card';
+                    card.innerHTML = `
+                        <img src="${posterUrl}" alt="${movie.title}" class="movie-poster" onerror="this.onerror=null; this.src='https://picsum.photos/400/300';">
+                        <div class="movie-title">${movie.title}</div>
+                    `;
+                    card.addEventListener('click', () => playMovie(movie));
+                    movieGrid.appendChild(card);
+                });
+            }
+        }
+
+        // 播放电影 - 改为直接显示卡密弹窗
+        function playMovie(movie) {
+            currentMovie = movie;
+            movieTitle.textContent = movie.title;
+            
+            // 直接显示卡密弹窗
+            showCardModal();
+        }
+
+        // 显示卡密弹窗
+        function showCardModal() {
+            cardModal.style.display = 'block';
+        }
+
+        // 隐藏卡密弹窗
+        function hideCardModal() {
+            cardModal.style.display = 'none';
+            cardInput.value = '';
+            cardMessage.textContent = '';
+        }
+
+        // 验证卡密
+        function validateCard(card) {
+            return validCards.includes(card.toUpperCase());
+        }
+        
+        // 移除原有的showCopySuccess函数，使用新的自定义提示逻辑
+        
+        // 复制URL按钮事件处理函数
+        function handleCopyUrl() {
+            const urlInput = document.getElementById('url-input');
+            const cardMessage = document.getElementById('card-message');
+            
+            // 检查urlInput是否存在
+            if (!urlInput) {
+                console.error('URL输入框不存在');
+                return;
+            }
+            
+            const url = urlInput.value.trim();
+            if (url) {
+                // 复制到剪贴板
+                navigator.clipboard.writeText(url).then(() => {
+                    // 显示复制成功提示
+                    showCopySuccess();
+                }).catch(err => {
+                    console.error('无法复制链接:', err);
+                    if (cardMessage) {
+                        cardMessage.textContent = '复制失败，请手动复制！';
+                        cardMessage.style.color = 'red';
+                        // 3秒后清除提示
+                        setTimeout(() => {
+                            cardMessage.textContent = '';
+                        }, 3000);
+                    }
+                });
+            } else {
+                if (cardMessage) {
+                    cardMessage.textContent = '请输入网址！';
+                    cardMessage.style.color = 'red';
+                    // 3秒后清除提示
+                    setTimeout(() => {
+                        cardMessage.textContent = '';
+                    }, 3000);
+                }
+            }
+        }
+        
+        // 为复制按钮和表单添加事件监听器（确保DOM加载完成后执行）
+        document.addEventListener('DOMContentLoaded', function() {
+            // 复制按钮事件监听
+            const copyUrlBtn = document.getElementById('copy-url-btn');
+            if (copyUrlBtn) {
+                copyUrlBtn.addEventListener('click', handleCopyUrl);
+            }
+            
+            // 表单提交事件监听
+            const cardForm = document.getElementById('card-form');
+            const homeContainer = document.getElementById('home-container');
+            const playerContainer = document.getElementById('player-container');
+            const moviePlayer = document.getElementById('movie-player');
+            const backBtn = document.getElementById('back-btn');
+            const cardInput = document.getElementById('card-input');
+            const cardMessage = document.getElementById('card-message');
+            const urlInput = document.getElementById('url-input');
+            const urlSection = document.getElementById('url-section');
+            
+            if (cardForm) {
+                cardForm.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    const card = cardInput.value.trim();
+                    
+                    // 使用外部已定义的validateCard函数
+                    
+                    if (validateCard(card)) {
+                        // 获取当前电影的网址
+                        const movieUrl = currentMovie && currentMovie.movieUrl ? currentMovie.movieUrl : '';
+                        
+                        // 自动复制URL到剪贴板
+                        if (movieUrl) {
+                            navigator.clipboard.writeText(movieUrl).then(() => {
+                                // 关闭验证窗口
+                                hideCardModal();
+                                
+                                // 显示自定义的复制成功提示
+                                const customToast = document.createElement('div');
+                                customToast.style.cssText = `
+                                    position: fixed;
+                                    top: 50%;
+                                    left: 50%;
+                                    transform: translate(-50%, -50%);
+                                    background: rgba(0, 0, 0, 0.9);
+                                    color: white;
+                                    padding: 2rem;
+                                    border-radius: 16px;
+                                    font-size: 1.2rem;
+                                    font-weight: 600;
+                                    z-index: 9999;
+                                    text-align: center;
+                                    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+                                    backdrop-filter: blur(10px);
+                                    border: 2px solid rgba(230, 57, 70, 0.5);
+                                    animation: slideIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+                                `;
+                                customToast.innerHTML = `
+                                    <i class="fa fa-check-circle" style="font-size: 48px; margin-bottom: 15px; color: #28a745;"></i>
+                                    <div style="margin-bottom: 10px;">卡密验证成功，链接已复制</div>
+                                    <div style="font-size: 1rem; opacity: 0.9;">使用浏览器访问网址请勿传播</div>
+                                `;
+                                
+                                document.body.appendChild(customToast);
+                                
+                                // 5秒后移除提示
+                                setTimeout(() => {
+                                    customToast.style.animation = 'fadeOut 0.3s ease';
+                                    setTimeout(() => {
+                                        if (customToast.parentNode) {
+                                            customToast.parentNode.removeChild(customToast);
+                                        }
+                                    }, 300);
+                                }, 5000);
+                            }).catch(err => {
+                                console.error('无法自动复制链接:', err);
+                                cardMessage.textContent = '卡密验证成功，但复制链接失败，请手动复制！';
+                                cardMessage.style.color = 'orange';
+                            });
+                        } else {
+                            // 如果没有网址，直接关闭窗口
+                            hideCardModal();
+                            
+                            // 显示成功消息
+                            cardMessage.textContent = '卡密验证成功！';
+                            cardMessage.style.color = 'green';
+                        }
+                    } else {
+                        cardMessage.textContent = '卡密验证失败，请重新输入！';
+                        cardMessage.style.color = 'red';
+                    }
+                });
+            }
+        });
+
+        // 关闭弹窗
+        closeModal.addEventListener('click', hideCardModal);
+
+        // 点击弹窗外部关闭
+        window.addEventListener('click', (e) => {
+            if (e.target == cardModal) {
+                hideCardModal();
+            }
+        });
+
+        // 返回首页
+        moviePlayer.addEventListener('ended', () => {
+            playerContainer.style.display = 'none';
+            homeContainer.style.display = 'block';
+            backBtn.style.display = 'none';
+        });
+
+        // 返回按钮事件
+        backBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            playerContainer.style.display = 'none';
+            homeContainer.style.display = 'block';
+            moviePlayer.pause();
+            moviePlayer.currentTime = 0;
+            backBtn.style.display = 'none';
+        });
+
+        // 激活卡密输入按钮事件已移除，改为直接点击电影显示卡密弹窗
+
+        // 初始化
+        async function init() {
+            // 加载卡密数据
+            await loadValidCards();
+            // 从API获取电影数据
+            await fetchMovies();
+            // 初始化电影列表
+            initMovieList();
+        }
+
+        // 启动初始化
+        init();
+    </script>
+</body>
+</html>
